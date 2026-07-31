@@ -9,64 +9,103 @@ const News = (props) => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const apiKey = process.env.REACT_APP_GNEWS_API || props.apiKey;
 
   const capitalizeFirstLetter = (str) => {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  const updateNews = async () => {
-    props.setProgress(10);
-    let query;
-
-    if (props.searchMode && props.q !== "") {
-      query = props.q;
-    } else if (props.category === "general") {
-      query = "india";
+  const getQuery = () => {
+    if (props.searchMode && props.q && props.q.trim() !== "") {
+      return props.q.trim();
+    } else if (props.category === "home" || props.category === "general") {
+      return "india";
     } else {
-      query = props.category;
+      return props.category || "india";
     }
+  };
 
-    const url = `https://newsapi.org/v2/everything?q=${query}&page=1&pageSize=${props.pageSize}&apiKey=${props.apiKey}`;
+  const removeDuplicates = (articlesList) => {
+    return articlesList.filter(
+      (item, index, self) =>
+        index ===
+        self.findIndex(
+          (t) =>
+            t.url === item.url ||
+            (t.title &&
+              item.title &&
+              t.title.toLowerCase().trim() === item.title.toLowerCase().trim()),
+        ),
+    );
+  };
+
+  const updateNews = async () => {
+    if (props.setProgress) props.setProgress(10);
+    const query = encodeURIComponent(getQuery());
+    const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&max=${props.pageSize}&page=1&apikey=${apiKey}`;
 
     setLoading(true);
-    let data = await fetch(url);
-    props.setProgress(30);
-    let parsedData = await data.json();
-    props.setProgress(60);
+    setErrorMsg("");
 
-    setArticles(parsedData.articles || []);
-    setTotalResults(parsedData.totalResults || 0);
-    setPage(1);
-    setLoading(false);
-    props.setProgress(100);
+    try {
+      let data = await fetch(url);
+      if (props.setProgress) props.setProgress(30);
+
+      if (!data.ok) {
+        throw new Error(`API Error Status: ${data.status}`);
+      }
+
+      let parsedData = await data.json();
+      if (props.setProgress) props.setProgress(60);
+
+      if (parsedData.articles) {
+        const cleanArticles = removeDuplicates(parsedData.articles);
+        setArticles(cleanArticles);
+        setTotalResults(
+          parsedData.totalArticles || parsedData.totalResults || 0,
+        );
+        setPage(1);
+      }
+    } catch (error) {
+      console.error("Fetch Error:", error);
+      setErrorMsg();
+    } finally {
+      setLoading(false);
+      if (props.setProgress) props.setProgress(100);
+    }
   };
 
   useEffect(() => {
     document.title = `QuickNews - ${capitalizeFirstLetter(props.category)}`;
     updateNews();
-    //eslint-disable-next-line
+    // eslint-disable-next-line
   }, [props.q, props.category]);
 
   const fetchMoreData = async () => {
+    if (articles.length >= totalResults) return;
+
     const nextPage = page + 1;
-    let query;
+    const query = encodeURIComponent(getQuery());
+    const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&max=${props.pageSize}&page=${nextPage}&apikey=${apiKey}`;
+    try {
+      let data = await fetch(url);
+      if (!data.ok) return;
 
-    if (props.searchMode && props.q !== "") {
-      query = props.q;
-    } else if (props.category === "general") {
-      query = "india";
-    } else {
-      query = props.category;
+      let parsedData = await data.json();
+
+      if (parsedData.articles && parsedData.articles.length > 0) {
+        setArticles((prevArticles) => {
+          const combined = [...prevArticles, ...parsedData.articles];
+          return removeDuplicates(combined);
+        });
+        setPage(nextPage);
+      }
+    } catch (error) {
+      console.error("Fetch More Error:", error);
     }
-
-    const url = `https://newsapi.org/v2/everything?q=${query}&page=${nextPage}&pageSize=${props.pageSize}&apiKey=${props.apiKey}`;
-    let data = await fetch(url);
-    let parsedData = await data.json();
-
-    setArticles(articles.concat(parsedData.articles || []));
-    setTotalResults(parsedData.totalResults || 0);
-    setPage(nextPage);
   };
 
   return (
@@ -78,7 +117,7 @@ const News = (props) => {
     >
       <h2
         className="text-center"
-        style={{ margin: "20px 0", marginTop: "45px" }}
+        style={{ margin: "20px 0", marginTop: "90px" }}
       >
         {props.category === "search"
           ? `Search Results for "${props.q}"`
@@ -87,11 +126,21 @@ const News = (props) => {
 
       {loading && <Spinner />}
 
+      {errorMsg && !loading && (
+        <div className="alert alert-danger text-center my-4" role="alert">
+          {errorMsg}
+        </div>
+      )}
+
+      {!loading && !errorMsg && articles.length === 0 && (
+        <h4 className="text-center my-5">No news available at the moment.</h4>
+      )}
+
       <InfiniteScroll
         dataLength={articles.length}
         next={fetchMoreData}
-        hasMore={articles.length !== totalResults}
-        loader={<Spinner />}
+        hasMore={articles.length < totalResults}
+        loader={articles.length < totalResults ? <Spinner /> : null}
       >
         <div className="container">
           <div className="row">
@@ -101,9 +150,9 @@ const News = (props) => {
                   <NewsItem
                     title={element.title ? element.title : ""}
                     description={element.description ? element.description : ""}
-                    imageUrl={element.urlToImage}
+                    imageUrl={element.image || element.urlToImage}
                     newsUrl={element.url}
-                    author={element.author}
+                    author={element.author || element.source?.name}
                     date={element.publishedAt}
                     source={element.source?.name}
                     mode={props.mode}
@@ -120,7 +169,7 @@ const News = (props) => {
 
 News.defaultProps = {
   q: "india",
-  pageSize: 5,
+  pageSize: 6,
   category: "general",
   mode: "light",
   searchMode: false,

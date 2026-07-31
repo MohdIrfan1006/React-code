@@ -58,7 +58,7 @@ const App = () => {
             <News
               setProgress={setProgress}
               apiKey={apiKey}
-              key={`general-${search}`}
+              key="home"
               pageSize={pageSize}
               q={search || "india"}
               category="home"
@@ -71,7 +71,7 @@ const App = () => {
             <News
               setProgress={setProgress}
               apiKey={apiKey}
-              key={`business-${search}`}
+              key="business"
               pageSize={pageSize}
               q={search || "business"}
               category="business"
@@ -84,7 +84,7 @@ const App = () => {
             <News
               setProgress={setProgress}
               apiKey={apiKey}
-              key={`science-${search}`}
+              key="science"
               pageSize={pageSize}
               q={search || "science"}
               category="science"
@@ -97,7 +97,7 @@ const App = () => {
             <News
               setProgress={setProgress}
               apiKey={apiKey}
-              key={`health-${search}`}
+              key="health"
               pageSize={pageSize}
               q={search || "health"}
               category="health"
@@ -110,7 +110,7 @@ const App = () => {
             <News
               setProgress={setProgress}
               apiKey={apiKey}
-              key={`sports-${search}`}
+              key="sports"
               pageSize={pageSize}
               q={search || "sports"}
               category="sports"
@@ -123,7 +123,7 @@ const App = () => {
             <News
               setProgress={setProgress}
               apiKey={apiKey}
-              key={`technology-${search}`}
+              key="technology"
               pageSize={pageSize}
               q={search || "technology"}
               category="technology"
@@ -136,7 +136,7 @@ const App = () => {
             <News
               setProgress={setProgress}
               apiKey={apiKey}
-              key={`entertainment-${search}`}
+              key="entertainment"
               pageSize={pageSize}
               q={search || "entertainment"}
               category="entertainment"
@@ -149,7 +149,7 @@ const App = () => {
             <News
               setProgress={setProgress}
               apiKey={apiKey}
-              key={`general-${search}`}
+              key="general"
               pageSize={pageSize}
               q={search || "general"}
               category="general"

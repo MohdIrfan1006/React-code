@@ -8,6 +8,7 @@ const Navbar = (props) => {
   const handleChange = (e) => {
     setSearch(e.target.value);
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -21,7 +22,7 @@ const Navbar = (props) => {
   return (
     <div>
       <nav
-        className={`navbar navbar-expand-lg navbar-${props.mode} bg-${props.mode} shadow-sm`}
+        className={`navbar navbar-expand-lg fixed-top navbar-${props.mode} bg-${props.mode} shadow-sm`}
         style={{
           transition: "0.4s",
           padding: "12px 20px",
@@ -146,17 +147,17 @@ const Navbar = (props) => {
                 onChange={handleChange}
                 style={{
                   width: "280px",
-                  height: "30px",
+                  height: "35px",
                   border: "2px solid #0d6efd",
                   boxShadow: "none",
                 }}
               />
 
               <button
-                className="btn btn-primary rounded-pill ms-2 px-4"
+                className="btn btn-primary rounded-pill ms-2 px-4 d-flex align-items-center justify-content-center"
                 type="submit"
                 style={{
-                  height: "30px",
+                  height: "35px",
                   fontWeight: "500",
                   fontSize: "13px",
                 }}
@@ -165,7 +166,7 @@ const Navbar = (props) => {
               </button>
             </form>
 
-            {/* Dark Mode */}
+            {/* Dark Mode Toggle */}
             <div
               className={`form-check form-switch text-${
                 props.mode === "light" ? "dark" : "light"
@@ -178,7 +179,7 @@ const Navbar = (props) => {
                 checked={props.mode === "dark"}
                 style={{
                   cursor: "pointer",
-                  transform: "scale(1.4)",
+                  transform: "scale(1.3)",
                 }}
               />
 
@@ -186,7 +187,7 @@ const Navbar = (props) => {
                 className="form-check-label fw-bold"
                 style={{
                   cursor: "pointer",
-                  fontSize: "16px",
+                  fontSize: "15px",
                 }}
               >
                 {props.mode === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
@@ -205,4 +206,5 @@ Navbar.propTypes = {
   handleSearch: PropTypes.func,
   clearSearch: PropTypes.func,
 };
+
 export default Navbar;
