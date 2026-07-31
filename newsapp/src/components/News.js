@@ -132,10 +132,6 @@ const News = (props) => {
         </div>
       )}
 
-      {!loading && !errorMsg && articles.length === 0 && (
-        <h4 className="text-center my-5">No news available at the moment.</h4>
-      )}
-
       <InfiniteScroll
         dataLength={articles.length}
         next={fetchMoreData}
